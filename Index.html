@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neon Glass | P2P Tic-Tac-Toe</title>
+    <style>
+        :root {
+            --bg-dark: #070913;
+            --bg-purple: #1a0b2e;
+            --bg-cyan: #051622;
+            --glass-bg: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --glass-highlight: rgba(255, 255, 255, 0.15);
+            --x-color: #00f0ff;
+            --o-color: #ff0066;
+            --text-main: #ffffff;
+            --text-muted: rgba(255, 255, 255, 0.6);
+        }
+
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--bg-dark), var(--bg-purple), var(--bg-cyan));
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            overflow: hidden;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+
+        .app-container {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-top: 1px solid rgba(255,255,255,0.2);
+            border-left: 1px solid rgba(255,255,255,0.1);
+            border-radius: 24px;
+            padding: 35px;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255,255,255,0.1);
+            animation: float 6s ease-in-out infinite;
+            position: relative;
+            z-index: 10;
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+            text-align: center;
+            background: linear-gradient(to right, #fff, rgba(255,255,255,0.6));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: 1px;
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            text-align: center;
+            margin-bottom: 25px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .control-panel {
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 25px;
+        }
+
+        .symbol-selector {
+            display: flex;
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 15px;
+            border: 1px solid var(--glass-border);
+        }
+
+        .symbol-btn {
+            flex: 1;
+            background: transparent;
+            color: var(--text-muted);
+            border: none;
+            padding: 10px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .symbol-btn.active#btnX {
+            background: rgba(0, 240, 255, 0.15);
+            color: var(--x-color);
+            text-shadow: 0 0 10px var(--x-color);
+            border-bottom: 2px solid var(--x-color);
+        }
+
+        .symbol-btn.active#btnO {
+            background: rgba(255, 0, 102, 0.15);
+            color: var(--o-color);
+            text-shadow: 0 0 10px var(--o-color);
+            border-bottom: 2px solid var(--o-color);
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        input {
+            flex: 1;
+            padding: 12px 15px;
+            background: rgba(0,0,0,0.2);
+            border: 1px solid var(--glass-border);
+            border-radius: 10px;
+            font-size: 0.9rem;
+            color: white;
+            transition: all 0.3s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: rgba(255,255,255,0.4);
+            box-shadow: 0 0 15px rgba(255,255,255,0.1);
+        }
+
+        button.btn-primary {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(5px);
+            color: white;
+            border: 1px solid var(--glass-highlight);
+            padding: 12px 20px;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        button.btn-primary:hover:not(:disabled) {
+            background: rgba(255,255,255,0.2);
+            box-shadow: 0 0 15px rgba(255,255,255,0.2);
+            transform: translateY(-2px);
+        }
+
+        button.btn-primary:active:not(:disabled) {
+            transform: scale(0.95);
+        }
+
+        button.btn-secondary {
+            width: 100%;
+            background: transparent;
+            color: var(--text-muted);
+            border: 1px dashed var(--glass-border);
+            padding: 10px;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        button.btn-secondary:hover {
+            background: rgba(255,255,255,0.05);
+            color: white;
+        }
+
+        .peer-id-box {
+            font-family: monospace;
+            font-size: 0.75rem;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid transparent;
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 10px;
+            color: var(--text-muted);
+            text-align: center;
+        }
+
+        .status-bar {
+            text-align: center;
+            font-size: 0.9rem;
+            font-weight: 500;
+            padding: 15px;
+            background: rgba(0,0,0,0.2);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            margin-bottom: 25px;
+            transition: all 0.3s ease;
+        }
+
+        @keyframes pulseGlow {
+            0% { box-shadow: 0 0 5px rgba(255,255,255,0.05); }
+            50% { box-shadow: 0 0 15px rgba(255,255,255,0.2); }
+            100% { box-shadow: 0 0 5px rgba(255,255,255,0.05); }
+        }
+
+        .status-bar.waiting {
+            animation: pulseGlow 2s infinite;
+        }
+
+        .board {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+
+        .cell {
+            aspect-ratio: 1;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            font-size: 3.5rem;
+            font-weight: 300;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(10px);
+        }
+
+        @keyframes shine {
+            0% { left: -100%; opacity: 0; }
+            20% { opacity: 0.5; }
+            100% { left: 200%; opacity: 0; }
+        }
+
+        .cell::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            width: 50%;
+            height: 100%;
+            background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0) 100%);
+            transform: skewX(-25deg);
+            animation: shine 6s infinite;
+            pointer-events: none;
+        }
+
+        .cell:hover:not(.disabled) {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: var(--glass-highlight);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+
+        .cell:active:not(.disabled) {
+            transform: scale(0.92); 
+        }
+
+        .cell.X {
+            color: var(--x-color);
+            text-shadow: 0 0 20px var(--x-color), 0 0 40px var(--x-color);
+        }
+
+        .cell.O {
+            color: var(--o-color);
+            text-shadow: 0 0 20px var(--o-color), 0 0 40px var(--o-color);
+        }
+
+        /* NEW: Winning line animation */
+        @keyframes winPulse {
+            0% { background: rgba(255,255,255,0.02); border-color: var(--glass-border); }
+            50% { background: rgba(255,255,255,0.15); border-color: rgba(255,255,255,0.8); }
+            100% { background: rgba(255,255,255,0.02); border-color: var(--glass-border); }
+        }
+
+        .cell.win-cell {
+            animation: winPulse 1.2s infinite;
+            z-index: 5;
+        }
+
+        .ambient-light {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .light-1 {
+            width: 300px; height: 300px;
+            background: rgba(0, 240, 255, 0.15);
+            top: -100px; left: -100px;
+        }
+
+        .light-2 {
+            width: 400px; height: 400px;
+            background: rgba(255, 0, 102, 0.15);
+            bottom: -150px; right: -100px;
+        }
+    </style>
+</head>
+<body>
+    <div class="ambient-light light-1"></div>
+    <div class="ambient-light light-2"></div>
+
+    <div class="app-container">
+        <h1>Tic-Tac-Toe</h1>
+        <div class="subtitle">Holographic Link</div>
+
+        <div class="control-panel" id="connectionPanel">
+            <div id="symbolSelection" class="symbol-selector">
+                <button id="btnX" class="symbol-btn active" onclick="selectHostSymbol('X')">Play X</button>
+                <button id="btnO" class="symbol-btn" onclick="selectHostSymbol('O')">Play O</button>
+            </div>
+
+            <div class="input-group">
+                <input type="text" id="roomId" placeholder="Enter ID to connect" autocomplete="off">
+                <button class="btn-primary" onclick="connectToPeer()">Link</button>
+            </div>
+            <button class="btn-secondary" onclick="copyMyId()">Copy Secure ID</button>
+            <div class="peer-id-box" id="myPeerId">Initializing grid...</div>
+        </div>
+
+        <div class="status-bar waiting" id="status">Awaiting Connection...</div>
+
+        <div class="board" id="board"></div>
+
+        <button class="btn-primary" style="width: 100%; border-color: rgba(255,255,255,0.2);" onclick="resetGame()" disabled id="resetBtn">Purge Grid</button>
+    </div>
+
+    <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
+    <script>
+        let boardState = ['', '', '', '', '', '', '', '', ''];
+        let winningLine = []; // Tracks winning indices
+        let gameActive = true;
+        let selectedHostSymbol = 'X'; 
+        let mySymbol = null;       
+        let isMyTurn = false;
+        let connection = null;
+        let peer = null;
+        let gameStarted = false;
+
+        const boardElement = document.getElementById('board');
+        const statusElement = document.getElementById('status');
+        const resetBtn = document.getElementById('resetBtn');
+        const roomIdInput = document.getElementById('roomId');
+        const peerIdBox = document.getElementById('myPeerId');
+
+        const winPatterns = [
+            [0, 1, 2], [3, 4, 5], [6, 7, 8], 
+            [0, 3, 6], [1, 4, 7], [2, 5, 8], 
+            [0, 4, 8], [2, 4, 6]              
+        ];
+
+        function selectHostSymbol(symbol) {
+            if (gameStarted) return;
+            selectedHostSymbol = symbol;
+            document.getElementById('btnX').classList.toggle('active', symbol === 'X');
+            document.getElementById('btnO').classList.toggle('active', symbol === 'O');
+        }
+
+        function initPeer() {
+            peer = new Peer();
+            peer.on('open', (id) => {
+                peerIdBox.innerText = id;
+                updateStatus('Grid online. Share ID.');
+            });
+            peer.on('connection', (conn) => {
+                connection = conn;
+                setupConnection();
+                updateStatus('Incoming link...');
+            });
+            peer.on('error', (err) => {
+                updateStatus('Signal lost.');
+                peerIdBox.innerText = 'NETWORK ERROR';
+                peerIdBox.style.color = '#ff4444';
+            });
+        }
+
+        function setupConnection() {
+            connection.on('data', (data) => { handleIncomingData(data); });
+            connection.on('close', () => {
+                updateStatus('Link severed.');
+                gameStarted = false;
+                resetBtn.disabled = true;
+                document.getElementById('symbolSelection').style.display = 'flex';
+            });
+            connection.on('error', () => {
+                updateStatus('Link failed.');
+                gameStarted = false;
+            });
+        }
+
+        function handleIncomingData(data) {
+            switch(data.type) {
+                case 'move':
+                    if (gameActive && !isMyTurn) {
+                        makeMove(data.index, data.symbol, false);
+                        isMyTurn = true;
+                        updateTurnStatus();
+                    }
+                    break;
+                case 'reset':
+                    resetGameLocally();
+                    isMyTurn = (mySymbol === 'X'); 
+                    updateTurnStatus();
+                    break;
+                case 'init':
+                    if (mySymbol === null) { 
+                        mySymbol = (data.hostSymbol === 'X') ? 'O' : 'X'; 
+                        isMyTurn = (mySymbol === 'X'); 
+                        gameStarted = true; 
+                        resetBtn.disabled = false; 
+                        document.getElementById('symbolSelection').style.display = 'none'; 
+                        updateStatus(`Linked. You are ${mySymbol}`); 
+                        updateTurnStatus(); 
+                    } 
+                    break;
+            }
+        }
+
+        function connectToPeer() {
+            const peerId = roomIdInput.value.trim();
+            if (!peerId) return alert('Input ID required');
+            if (!peer) return alert('Grid offline');
+
+            updateStatus('Establishing link...');
+            connection = peer.connect(peerId);
+            setupConnection();
+            
+            const onConnectionReady = () => {
+                if (mySymbol === null) {
+                    setTimeout(() => { connection.send({ type: 'init', hostSymbol: selectedHostSymbol }); }, 200); 
+                    mySymbol = selectedHostSymbol;
+                    isMyTurn = (mySymbol === 'X');
+                    gameStarted = true;
+                    resetBtn.disabled = false;
+                    document.getElementById('symbolSelection').style.display = 'none';
+                    updateStatus(`Linked. You are ${mySymbol}`);
+                    updateTurnStatus();
+                }
+            };
+            
+            if (connection.open) onConnectionReady();
+            else connection.on('open', onConnectionReady);
+            
+            setTimeout(() => { 
+                if (!gameStarted && connection) {
+                    updateStatus('Link timeout.');
+                }
+            }, 10000);
+        }
+
+        function makeMove(index, symbol, sendToPeer = true) {
+            if (!gameActive || boardState[index] !== '') return false;
+            if (sendToPeer && (!isMyTurn || symbol !== mySymbol)) return false;
+
+            boardState[index] = symbol;
+
+            if (checkWin(symbol)) {
+                gameActive = false;
+                updateBoardUI(); 
+                updateStatus(symbol === mySymbol ? 'VICTORY ACHIEVED ✨' : 'DEFEAT 💀');
+                resetBtn.disabled = false;
+            } else if (checkDraw()) {
+                gameActive = false;
+                updateBoardUI();
+                updateStatus('STALEMATE');
+                resetBtn.disabled = false;
+            } else {
+                updateBoardUI();
+            }
+
+            if (sendToPeer) {
+                isMyTurn = false;
+                updateTurnStatus();
+                if (connection && connection.open) connection.send({ type: 'move', index: index, symbol: symbol });
+            } else {
+                isMyTurn = true;
+                updateTurnStatus();
+            }
+
+            return true;
+        }
+
+        function checkWin(symbol) {
+            for (let pattern of winPatterns) {
+                if (pattern.every(index => boardState[index] === symbol)) {
+                    winningLine = pattern; // Store winning cells
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        function checkDraw() {
+            return boardState.every(cell => cell !== '');
+        }
+
+        function updateBoardUI() {
+            const cells = document.querySelectorAll('.cell');
+            cells.forEach((cell, index) => {
+                cell.textContent = boardState[index];
+                
+                // Clear all dynamic classes properly
+                cell.classList.remove('X', 'O', 'disabled', 'win-cell');
+                
+                if (boardState[index] === 'X') cell.classList.add('X');
+                if (boardState[index] === 'O') cell.classList.add('O');
+                if (boardState[index] !== '') cell.classList.add('disabled');
+                
+                // Add highlight if cell is part of the winning line
+                if (winningLine.includes(index)) {
+                    cell.classList.add('win-cell');
+                }
+            });
+        }
+
+        function resetGameLocally() {
+            boardState = ['', '', '', '', '', '', '', '', ''];
+            winningLine = [];
+            gameActive = true;
+            updateBoardUI(); // Reliably strips all classes thanks to the fix
+        }
+
+        function resetGame() {
+            if (!gameStarted) return;
+            resetGameLocally();
+            isMyTurn = (mySymbol === 'X');
+            updateTurnStatus();
+            if (connection && connection.open) connection.send({ type: 'reset' });
+        }
+
+        function updateTurnStatus() {
+            if (!gameStarted) return;
+            if (gameActive) {
+                statusElement.textContent = isMyTurn ? `Your turn (${mySymbol})` : `Opponent is thinking...`;
+                if(isMyTurn) {
+                    statusElement.classList.remove('waiting');
+                    statusElement.style.border = `1px solid var(--${mySymbol.toLowerCase()}-color)`;
+                    statusElement.style.color = `var(--${mySymbol.toLowerCase()}-color)`;
+                    statusElement.style.textShadow = `0 0 10px var(--${mySymbol.toLowerCase()}-color)`;
+                } else {
+                    statusElement.classList.add('waiting');
+                    statusElement.style.border = '1px solid var(--glass-border)';
+                    statusElement.style.color = 'var(--text-main)';
+                    statusElement.style.textShadow = 'none';
+                }
+            } else {
+                statusElement.classList.remove('waiting');
+            }
+        }
+
+        function updateStatus(message) {
+            statusElement.textContent = message;
+        }
+
+        function copyMyId() {
+            const peerIdText = peerIdBox.innerText;
+            if (peerIdText && !peerIdText.includes('Initializing') && !peerIdText.includes('ERROR')) {
+                navigator.clipboard.writeText(peerIdText);
+                const originalText = statusElement.textContent;
+                updateStatus('ID copied to clipboard.');
+                setTimeout(() => updateStatus(originalText), 2000);
+            }
+        }
+
+        function createBoard() {
+            boardElement.innerHTML = '';
+            for (let i = 0; i < 9; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'cell';
+                cell.addEventListener('click', () => {
+                    if (gameStarted && gameActive && isMyTurn && boardState[i] === '') makeMove(i, mySymbol, true);
+                });
+                boardElement.appendChild(cell);
+            }
+            updateBoardUI();
+        }
+
+        createBoard();
+        initPeer();
+    </script>
+</body>
+</html>
